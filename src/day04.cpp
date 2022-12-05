@@ -2,26 +2,28 @@
 #include <iostream>
 #include <string>
 
-#include "./day04.hpp"
+#include "./days.hpp"
 
 namespace day4 {
     using std::string;
 
-    struct range {
-        int min{};
-        int max{};
-    };
+    namespace {
+        struct range {
+            int min{};
+            int max{};
+        };
 
-    bool hazNommed(const range& nommer, const range& nommee) {
-        return nommer.min <= nommee.min && nommer.max >= nommee.max;
+        bool hazNommed(const range& nommer, const range& nommee) {
+            return nommer.min <= nommee.min && nommer.max >= nommee.max;
+        }
+
+        bool hasOverlab(const range& r1, const range& r2) {
+            return (r1.max >= r2.min && r1.min <= r2.min) ||
+                    (r2.max >= r1.min && r2.min <= r1.min);
+        }
     }
 
-    bool hasOverlab(const range& r1, const range& r2) {
-        return (r1.max >= r2.min && r1.min <= r2.min) ||
-                (r2.max >= r1.min && r2.min <= r1.min);
-    }
-
-    void run(string filename) {
+    DayResults run(string filename) {
         //auto f = fopen(filename.c_str(), "r");
 
         std::ifstream f{filename};
@@ -60,7 +62,9 @@ namespace day4 {
             }
         }
 
-        std::cout << part1 << '\n';
-        std::cout << part2 << '\n';
+        return DayResults {
+            "There are " + std::to_string(part1) + " teams where one range completely overlaps the other.",
+            "There are " + std::to_string(part2) + " teams with some overlap."
+        };
     }
 }
