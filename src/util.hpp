@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <functional>
 #include <string>
 
 using TimeUnit = std::chrono::microseconds;
@@ -13,6 +14,11 @@ struct DayResults {
 std::ostream& operator<<(std::ostream& os, const DayResults& res);
 
 struct DayWithTime {
-    DayResults results;
-    TimeUnit t;
+    int dayNumber{};
+    DayResults results{};
+    TimeUnit t{};
 };
+
+std::ostream& operator<<(std::ostream& os, const DayWithTime& res);
+
+DayWithTime runAndTime(int day, std::function<DayResults(std::string)> solver, std::string input, int nSamples = 100);
