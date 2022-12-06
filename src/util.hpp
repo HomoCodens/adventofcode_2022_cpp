@@ -7,8 +7,8 @@
 using TimeUnit = std::chrono::microseconds;
 
 struct DayResults {
-    std::string part1{};
-    std::string part2{};
+    std::string part1{"Not implemented."};
+    std::string part2{"Not implemented."};
 };
 
 std::ostream& operator<<(std::ostream& os, const DayResults& res);
