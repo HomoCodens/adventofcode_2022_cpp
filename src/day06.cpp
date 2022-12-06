@@ -1,31 +1,37 @@
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "./days.hpp"
 #include "./util.hpp"
 
 namespace day6 {
     using std::string;
-
     namespace {
         int detect(string& ds, int lengthOfMarker) {
+            std::vector<int> charCounts(26, 0);
+            
             auto length{ds.size()};
+            int badity{0};
 
-            for(int start = 0; start < (length - lengthOfMarker); ++start) {
-                bool valid = true;
-                for(int i = 0; i < lengthOfMarker - 1; ++i) {
-                    for(int j = i + 1; j < lengthOfMarker; ++j) {
-                        if(ds[start + i] == ds[start + j]) {
-                            valid = false;
-                            break;
-                        }
-                    }
-                    if(!valid) {
-                        break;
-                    }
+            for(int ptr = 0; ptr < length; ++ptr) {
+                int i = ds[ptr] - 'a';
+
+                // "Rising edge" -> one more char is now contributing to
+                // the current window being bad
+                badity += (charCounts[i] == 1);
+                charCounts[i] += 1;
+
+                if(ptr >= lengthOfMarker) {
+                    int j = ds[ptr - lengthOfMarker] - 'a';
+                    
+                    // "Falling edge"
+                    badity -= (charCounts[j] == 2);
+                    charCounts[j] -= 1;
                 }
-                if(valid) {
-                    return start + lengthOfMarker;
+
+                if(ptr >= (lengthOfMarker - 1) && badity == 0) {
+                    return ptr + 1;
                 }
             }
             return 0;
