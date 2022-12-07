@@ -56,19 +56,21 @@ namespace day5 {
 
         vector<Instruction> parseInstructions(std::ifstream& f) {
             string line{};
-            std::regex number_regex{"\\d+"};
+            string trash{};
+            int n{0};
+            int from{0};
+            int to{0};
             vector<Instruction> instructions{};
+
             while(!f.eof()) {
                 std::getline(f, line);
                 if(line.size() > 0) {
-                    auto it{std::regex_iterator(line.begin(), line.end(), number_regex)};
+                    std::istringstream iss{line};
                     
-                    // This feels like it should not be it..
-                    int n{std::atoi((*(it++)).str().c_str())};
-                    int from{std::atoi((*(it++)).str().c_str()) - 1};
-                    int to{std::atoi((*(it++)).str().c_str()) - 1};
+                    // move <n> from <from + 1> to <to + 1>
+                    iss >> trash >> n >> trash >> from >> trash >> to;
 
-                    instructions.push_back({n, from, to});
+                    instructions.push_back({n, from - 1, to - 1});
                 }
             }
 
@@ -77,10 +79,11 @@ namespace day5 {
 
         Stacks runInstructions9000(vector<Instruction> instructions, Stacks stax) {
             for(Instruction isnt : instructions) {
-                for(int i = 0; i < isnt.nCrates; i++) {
-                    stax[isnt.toIndex].push_back(stax[isnt.fromIndex].back());
-                    stax[isnt.fromIndex].pop_back();
-                }
+                auto fromIt = stax[isnt.fromIndex].end();
+                std::reverse_copy(fromIt - isnt.nCrates, fromIt, std::back_inserter(stax[isnt.toIndex]));
+
+                int ogSize = stax[isnt.fromIndex].size();
+                stax[isnt.fromIndex].resize(ogSize - isnt.nCrates);
             }
 
             return stax;
