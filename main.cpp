@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <functional>
 #include <vector>
 #include <algorithm>
 #include <chrono>
@@ -9,8 +10,28 @@
 
 int main() {
     
-    DayWithTime dt = runAndTime(7, day7::run, "./input/day07/input.txt");
-    std::cout << dt << '\n';
+    std::vector<Runner> allTheDays{
+        day1::run,
+        day2::run,
+        day3::run,
+        day4::run,
+        day5::run,
+        day6::run,
+        day7::run
+    };
 
+    TimeUnit totalTime{0};
+
+    for(int i = 0; i < 7; i++) {
+        int day{i+1};
+        std::string path = "./input/day0" + std::to_string(day) + "/input.txt";
+
+        DayWithTime dt = runAndTime(day, allTheDays[i], path);
+        std::cout << dt;
+
+        totalTime += dt.t;
+    }
+
+    std::cout << "Total time taken: " << totalTime << '\n';
     return 0;
 }
