@@ -9,45 +9,46 @@
 namespace day3 {
     using std::string;
 
+    // 52 bits used to encode letters appearing in a backpack
+    // lsb -> 'a', 52nd bit -> 'Z'
+    using Digitmon = uint_fast64_t;
+
     namespace {
-        int scoreChar(char c) {
+        // Map a-Z to 0-51
+        int charToIndex(char c) {
             if(c >= 'a') {
-                return c - 'a' + 1;
+                return c - 'a';
             } else {
-                return c - 'A' + 1 + 26;
+                return c - 'A' + 26;
             }
         }
 
-        int analyzeBackpack(string bp) {
-            auto lngth{bp.length()};
-            auto bgn{bp.begin()};
-            
-            // Sort the first and second half of the backpack independently
-            std::sort(bgn, bgn + lngth/2);
-            std::sort(bgn + lngth/2, bp.end());
-
-            // find the set intersection between the two halves
-            string offender{};
-            std::set_intersection(bgn, bgn + lngth/2, bgn + lngth/2, bp.end(), std::back_inserter(offender));
-
-            return scoreChar(offender[0]);
+        // Digest a string into bits in a Digitmon
+        Digitmon digitize(std::string::iterator start, std::string::iterator end) {
+            Digitmon d{0};
+            Digitmon oneMon{1};
+            while(start != end) {
+                d |= (oneMon << charToIndex(*(start++)));
+            }
+            return d;
         }
 
-        int badgeGroup(std::vector<string> group) {
-            for(string& elf : group) {
-                std::sort(elf.begin(), elf.end());
+        // Find the one bit on the Digitmon that is 1 and return its 'score'
+        int scoreDigitmon(Digitmon d) {
+            if(d == 0) {
+                return 0;
             }
 
-            string ab{};
-            string bc{};
+            if(d == 1) {
+                return 1;
+            }
 
-            std::set_intersection(group[0].begin(), group[0].end(), group[1].begin(), group[1].end(), std::back_inserter(ab));
-            std::set_intersection(group[1].begin(), group[1].end(), group[2].begin(), group[2].end(), std::back_inserter(bc));
+            int score{0};
+            do {
+                ++score;
+            } while((d >>= 1) > 0);
 
-            string abc{};
-            std::set_intersection(ab.begin(), ab.end(), bc.begin(), bc.end(), std::back_inserter(abc));
-
-            return scoreChar(abc[0]);
+            return score;
         }
     }
 
@@ -55,25 +56,43 @@ namespace day3 {
         std::ifstream f{filename};
 
         int total{0};
-        int badgeTotal{};
+
+        int groupTotal{0};
+        int grpCounter{0};
+        Digitmon group{0};
+        
         string line{};
-        std::vector<string> activeGroup;
+        
         while(!f.eof()) {
             std::getline(f, line);
-            if(line != "") {
-                total += analyzeBackpack(line);
 
-                activeGroup.push_back(line);
-                if(activeGroup.size() == 3) {
-                    badgeTotal += badgeGroup(activeGroup);
-                    activeGroup.clear();
+            // For part 1, find the one bit in common between the two halves of line
+            auto lngth{line.length()};
+            auto bgn{line.begin()};
+            
+            Digitmon firstHalf{digitize(line.begin(), line.begin() + lngth/2)};
+            Digitmon secondHalf{digitize(line.begin() + lngth/2, line.end())};
+            
+            total += scoreDigitmon(firstHalf & secondHalf);
+
+            // For part 2, first 'concatenate' the two halves
+            Digitmon bothHalves = firstHalf | secondHalf;
+
+            // ...then for each group of 3, find what they have in common
+            if(grpCounter == 0) {
+                group = bothHalves;
+            } else {
+                group &= bothHalves;
+                if(grpCounter == 2) {
+                    groupTotal += scoreDigitmon(group);
                 }
             }
+            grpCounter = (grpCounter + 1) % 3;
         }
 
         return DayResults{
             "The scores of the misplaced items sum up to " + std::to_string(total),
-            "The scores of the common items from all groups sum to " + std::to_string(badgeTotal)
+            "The scores of the common items from all groups sum to " + std::to_string(groupTotal)
         };
     }
 }
