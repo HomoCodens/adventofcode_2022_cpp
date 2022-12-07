@@ -9,7 +9,7 @@
 
 int main() {
     
-    DayWithTime dt = runAndTime(6, day6::run, "./input/day06/input.txt");
+    DayWithTime dt = runAndTime(7, day7::run, "./input/day07/input.txt");
     std::cout << dt << '\n';
 
     return 0;
