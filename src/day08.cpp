@@ -1,3 +1,4 @@
+#include <iostream>
 #include <fstream>
 #include <string>
 
@@ -5,6 +6,37 @@
 
 namespace day8 {
     using std::string;
+    using ForestIndex = int;
+
+    namespace {
+        struct View {
+            int length{0};
+            bool edgeVisible{false};
+        };
+
+        View look(string forest, ForestIndex from, int direction, int nRow, int nCol) {
+            int lengthOfView{1};    // Can always see at least one tree
+            char tree{forest[from]};
+            ForestIndex at{from + direction};
+            bool isAnEdge{false};
+            while(!isAnEdge && forest[at] < tree) {
+                isAnEdge = (at % nCol) == 0 ||              // left edge
+                            (at % nCol) == (nCol - 1) ||    // right edge
+                            at < nCol ||                    // top edge
+                            at >= (nRow - 1)*nCol;          // bottom edge
+
+                if(!isAnEdge) {
+                    ++lengthOfView;
+                    at += direction;
+                }
+            }
+
+            return View{
+                lengthOfView,
+                isAnEdge && forest[at] < tree
+            };
+        }
+    }
 
     DayResults run(string filename) {
         std::ifstream f{filename};
@@ -23,53 +55,31 @@ namespace day8 {
 
         int nCol{forest.size() / nRow};
 
-        std::vector<int> visabilityMap(nRow*nCol, 0);
-
-        // Horizontal
-        for(int r = 1; r < (nRow - 1); ++r) {
-            int ri{r*nCol};
-            char leftRay{0};
-            char rightRay{0};
-
-            for(int c = 1; c < (nCol - 1); ++c) {
-                int outerLeft = ri + c - 1;
-                int innerLeft = ri + c;
-                int innerRight = ri + nCol - c - 1;
-                int outerRight = ri + nCol - c;
-                leftRay = forest[outerLeft] > leftRay ? forest[outerLeft] : leftRay;
-                rightRay = forest[outerRight] > rightRay ? forest[outerRight] : rightRay;
-
-                visabilityMap[innerLeft] += (forest[innerLeft] > leftRay);
-                visabilityMap[innerRight] += (forest[innerRight] > rightRay);
-            }
-        }
-
-        // Vertical
-        for(int c = 1; c < (nCol - 1); ++c) {
-            char topRay{0};
-            char bottomRay{0};
-
-            for(int r = 1; r < (nRow - 1); ++r) {
-                int outerTop = (r - 1)*nCol + c;
-                int innerTop = r*nCol + c;
-                int innerBottom = (nRow - r - 1)*nCol + c;
-                int outerBottom = (nRow - r)*nCol + c;
-
-                topRay = forest[outerTop] > topRay ? forest[outerTop] : topRay;
-                bottomRay = forest[outerBottom] > bottomRay ? forest[outerBottom] : bottomRay;
-
-                visabilityMap[innerTop] += (forest[innerTop] > topRay);
-                visabilityMap[innerBottom] += (forest[innerBottom] > bottomRay);
-            }
-        }
-
         int visibleTrees{2*nRow + 2*nCol - 4};
-        for(int tree : visabilityMap) {
-            visibleTrees += (tree > 0);
+
+        // Trees on the edge will always score 0
+        int scenicScore{0};
+
+        // up, right, down, left
+        std::vector<int> directions{-nCol, 1, nCol, -1};
+
+        for(int r = 1; r < (nRow - 1); ++r) {
+            for(int c = 1; c < (nCol - 1); ++c) {
+                bool visible{false};
+                int score{1};
+                for(int d : directions) {
+                    View v = look(forest, r*nCol + c, d, nRow, nCol);
+                    visible |= v.edgeVisible;
+                    score *= v.length;
+                }
+                visibleTrees += visible;
+                scenicScore = scenicScore < score ? score : scenicScore;
+            }
         }
 
         return DayResults{
-            "There are " + std::to_string(visibleTrees) + " trees visible from the outside."
+            "There are " + std::to_string(visibleTrees) + " trees visible from the outside.",
+            std::to_string(scenicScore)
         };
     }
 }
