@@ -18,16 +18,17 @@ int main() {
         day5::run,
         day6::run,
         day7::run,
-        day8::run
+        day8::run,
+        day9::run
     };
 
     TimeUnit totalTime{0};
 
-    for(int i = 0; i < 8; i++) {
+    for(int i = 8; i < 9; i++) {
         int day{i+1};
         std::string path = "./input/day0" + std::to_string(day) + "/input.txt";
 
-        DayWithTime dt = runAndTime(day, allTheDays[i], path);
+        DayWithTime dt = runAndTime(day, allTheDays[i], path, 1);
         std::cout << dt;
 
         totalTime += dt.t;
