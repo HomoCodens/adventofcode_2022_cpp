@@ -1,6 +1,7 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "./days.hpp"
 #include "./util.hpp"
@@ -34,8 +35,7 @@ namespace day9 {
 
         class DopeyTheRopey {
             private:
-                Vector2D m_head{0, 0};
-                Vector2D m_tail {0, 0};
+                std::vector<Vector2D> m_knots{};
                 std::unordered_map<string, bool> m_nodesVisitedByTail {{"(0, 0)", true}};
 
                 Vector2D getVelocityVector(char dir) {
@@ -53,28 +53,44 @@ namespace day9 {
                     return Vector2D{0, 0};
                 }
 
-                void catchUpTail() {
-                    Vector2D awayness = m_head - m_tail;
+                bool catchUpKnot(int knot) {
+                    Vector2D leader{m_knots[knot - 1]};
+                    Vector2D follower{m_knots[knot]};
+                    Vector2D awayness = leader - follower;
                     if(std::abs(awayness.x) > 1 || std::abs(awayness.y) > 1) {
                         Vector2D unitAwayness = Vector2D{
                             awayness.x == 0 ? 0 : awayness.x / std::abs(awayness.x),
                             awayness.y == 0 ? 0 : awayness.y / std::abs(awayness.y)
                         };
 
-                        m_tail = m_tail + unitAwayness;
+                        m_knots[knot] = m_knots[knot] + unitAwayness;
 
-                        string kee = "(" + std::to_string(m_tail.x) + ", " + std::to_string(m_tail.y) + ")";
-                        m_nodesVisitedByTail.insert_or_assign(kee, true);
+                        return true;
+                    } else {
+                        return false;
                     }
                 }
 
             public:
+                DopeyTheRopey(int length) {
+                    for(int i = 0; i < length; ++i) {
+                        m_knots.push_back(Vector2D{0, 0});
+                    }
+                }
+
                 void move(Move m) {
                     Vector2D v = getVelocityVector(m.dir);
 
                     for(int i = 0; i < m.dist; i++) {
-                        m_head = m_head + v;
-                        catchUpTail();
+                        m_knots[0] = m_knots[0] + v;
+                        int k = 1;
+                        while(k < m_knots.size() && catchUpKnot(k)) {
+                            ++k;
+                        }
+
+                        string kee = "(" + std::to_string(m_knots[m_knots.size() - 1].x) + 
+                                        ", " + std::to_string(m_knots[m_knots.size() - 1].y) + ")";
+                        m_nodesVisitedByTail.insert_or_assign(kee, true);
                     }
                 }
 
@@ -87,19 +103,23 @@ namespace day9 {
     DayResults run(string filename) {
         std::ifstream f(filename);
 
-        DopeyTheRopey rope{};
+        DopeyTheRopey rope{2};
+        DopeyTheRopey longRope{10};
 
         while(!f.eof()) {
             char dir{'\0'};
             int dist{0};
             f >> dir >> dist;
             if(dir != '\0') {
-                rope.move(Move{dir, dist});
+                Move m{dir, dist};
+                rope.move(m);
+                longRope.move(m);
             }
         }
 
         return DayResults{
-            std::to_string(rope.ohWhereHasTheTailBeen())
+            std::to_string(rope.ohWhereHasTheTailBeen()),
+            std::to_string(longRope.ohWhereHasTheTailBeen())
         };
     }
 }
