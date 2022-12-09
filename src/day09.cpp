@@ -15,15 +15,33 @@ namespace day9 {
             int y{0};
         };
 
-        Vector2D operator+(Vector2D a, Vector2D b) {
+        struct PointHasher {
+            size_t operator()(const Vector2D& x) const {
+                auto hasher = std::hash<int>{};
+
+                auto h1 = hasher(x.x);
+                auto h2 = hasher(x.y);
+
+                if(h1 != h2) {
+                    return h1 ^ h2;
+                }
+                return h1;
+            }
+        };
+
+        bool operator==(const Vector2D& a, const Vector2D& b) {
+            return a.x == b.x && a.y == b.y;
+        }
+
+        Vector2D operator+(const Vector2D& a, const Vector2D& b) {
             return Vector2D{a.x + b.x, a.y + b.y};
         }
 
-        Vector2D operator-(Vector2D a, Vector2D b) {
+        Vector2D operator-(const Vector2D& a, const Vector2D& b) {
             return Vector2D{a.x - b.x, a.y - b.y};
         }
 
-        Vector2D operator*(int magnitude, Vector2D v) {
+        Vector2D operator*(const int& magnitude, const Vector2D& v) {
             return Vector2D{magnitude*v.x, magnitude*v.y};
         }
 
@@ -36,7 +54,7 @@ namespace day9 {
         class DopeyTheRopey {
             private:
                 std::vector<Vector2D> m_knots{};
-                std::unordered_map<string, bool> m_nodesVisitedByTail {{"(0, 0)", true}};
+                std::unordered_map<Vector2D, bool, PointHasher> m_nodesVisitedByTail {{Vector2D{}, true}};
 
                 Vector2D getVelocityVector(char dir) {
                     switch(dir) {
@@ -57,6 +75,7 @@ namespace day9 {
                     Vector2D leader{m_knots[knot - 1]};
                     Vector2D follower{m_knots[knot]};
                     Vector2D awayness = leader - follower;
+
                     if(std::abs(awayness.x) > 1 || std::abs(awayness.y) > 1) {
                         Vector2D unitAwayness = Vector2D{
                             awayness.x == 0 ? 0 : awayness.x / std::abs(awayness.x),
@@ -88,9 +107,7 @@ namespace day9 {
                             ++k;
                         }
 
-                        string kee = "(" + std::to_string(m_knots[m_knots.size() - 1].x) + 
-                                        ", " + std::to_string(m_knots[m_knots.size() - 1].y) + ")";
-                        m_nodesVisitedByTail.insert_or_assign(kee, true);
+                        m_nodesVisitedByTail.insert_or_assign(m_knots[m_knots.size() - 1], true);
                     }
                 }
 
@@ -118,8 +135,8 @@ namespace day9 {
         }
 
         return DayResults{
-            std::to_string(rope.ohWhereHasTheTailBeen()),
-            std::to_string(longRope.ohWhereHasTheTailBeen())
+            "The short rope tail goes " + std::to_string(rope.ohWhereHasTheTailBeen()) + " many places.",
+            "The long rope tail goes " + std::to_string(longRope.ohWhereHasTheTailBeen()) + " many places."
         };
     }
 }
