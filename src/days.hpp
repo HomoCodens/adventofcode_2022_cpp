@@ -15,5 +15,6 @@ DAY(6)
 DAY(7)
 DAY(8)
 DAY(9)
+DAY(10)
 
 #undef DAY

@@ -19,14 +19,15 @@ int main() {
         day6::run,
         day7::run,
         day8::run,
-        day9::run
+        day9::run,
+        day10::run
     };
 
     TimeUnit totalTime{0};
 
-    for(int i = 0; i < 9; i++) {
+    for(int i = 9; i < 10; i++) {
         int day{i+1};
-        std::string path = "./input/day0" + std::to_string(day) + "/input.txt";
+        std::string path = "./input/day" + std::to_string(day) + "/input.txt";
 
         DayWithTime dt = runAndTime(day, allTheDays[i], path, 1);
         std::cout << dt;

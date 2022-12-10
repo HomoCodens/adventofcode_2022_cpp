@@ -17,7 +17,7 @@ Day | Time
 6   | 104µs
 7   | 244µs
 8   | 10.029ms (well dang...)
-9   | 
+9   | 7.699ms
 10  | 
 11  | 
 12  | 
@@ -34,7 +34,7 @@ Day | Time
 23  | 
 24  | 
 25  |   
-**Total** | 1951µs
+**Total** | 19.874ms
 
 ## WANTTODOS
 * Add command line args
