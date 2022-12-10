@@ -25,11 +25,17 @@ int main() {
 
     TimeUnit totalTime{0};
 
-    for(int i = 9; i < 10; i++) {
+    for(int i = 0; i < 10; i++) {
         int day{i+1};
-        std::string path = "./input/day" + std::to_string(day) + "/input.txt";
 
-        DayWithTime dt = runAndTime(day, allTheDays[i], path, 1);
+        std::string dayStr{std::to_string(day)};
+        if(day < 10) {
+            dayStr = "0" + dayStr;
+        }
+
+        std::string path = "./input/day" + dayStr + "/input.txt";
+
+        DayWithTime dt = runAndTime(day, allTheDays[i], path, 100);
         std::cout << dt;
 
         totalTime += dt.t;

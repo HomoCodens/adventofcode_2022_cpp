@@ -28,7 +28,6 @@ namespace day10 {
             // TODO: Why does f >> instruction >> y; crap out after the first noop??
             std::istringstream is{line};
             is >> instruction >> y;
-            std::cout << "Instraction be " << instruction << ' ' << y << '\n';
             
             if(line != "") {
                 if(instruction == "noop") {
