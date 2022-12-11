@@ -26,7 +26,7 @@ int main() {
 
     TimeUnit totalTime{0};
 
-    for(int i = 10; i < 11; i++) {
+    for(int i = 0; i < 11; i++) {
         int day{i+1};
 
         std::string dayStr{std::to_string(day)};
@@ -36,7 +36,7 @@ int main() {
 
         std::string path = "./input/day" + dayStr + "/input.txt";
 
-        DayWithTime dt = runAndTime(day, allTheDays[i], path, 1);
+        DayWithTime dt = runAndTime(day, allTheDays[i], path, 100);
         std::cout << dt;
 
         totalTime += dt.t;

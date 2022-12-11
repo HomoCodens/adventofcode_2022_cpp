@@ -17,48 +17,17 @@ namespace day11 {
     namespace {
         // Gut tells us to do it functional like, but when in OO-Land...
         
-        /*class MonkeOperand {
-            public:
-                virtual int getValue(int old) {
-                    return 0;
-                };
-        };
-
-        class ConstOperand : public MonkeOperand {
-            private:
-                int m_value{0};
-
-            public:
-                ConstOperand(int value) : m_value{value} {
-                }
-
-                int getValue(int old) override {
-                    return m_value;
-                }
-        };
-
-        std::ostream operator<<(std::ostream& os, const ConstOperand& o) {
-            os << o.getValue(0);
-        }
-
-        class OldOperand : public MonkeOperand {
-            int getValue(int old) override {
-                return old;
-            }
-        };
-
-        std::ostream operator<<(std::ostream& os, const OldOperand& o) {
-            os << "old";
-        }*/
+        // Still need a bigger type than int here, worst case is about 96000**2
+        using Worry = ulong;
 
         struct Throw {
             int recipient{0};
-            int item{0};
+            Worry item{0};
         };
 
         struct MonkeOperand {
             bool isConst{true};
-            int value{0};
+            Worry value{0};
         };
 
         class Operation {
@@ -72,19 +41,25 @@ namespace day11 {
                     if(left == "old") {
                         m_leftOperand = MonkeOperand{false};
                     } else {
-                        m_leftOperand = MonkeOperand{true, std::atoi(left.c_str())};
+                        Worry leftInt;
+                        std::istringstream ss{left};
+                        ss >> leftInt;
+                        m_leftOperand = MonkeOperand{true, leftInt};
                     }
 
                     if(right == "old") {
                         m_rightOperand = MonkeOperand{false};
                     } else {
-                        m_rightOperand = MonkeOperand{true, std::atoi(right.c_str())};
+                        Worry rightInt;
+                        std::istringstream ss{right};
+                        ss >> rightInt;
+                        m_rightOperand = MonkeOperand{true, rightInt};
                     }
                 }
 
-                int apply(int old) {
-                    int a{m_leftOperand.isConst ? m_leftOperand.value : old};
-                    int b{m_rightOperand.isConst ? m_rightOperand.value : old};
+                Worry apply(Worry old) {
+                    Worry a{m_leftOperand.isConst ? m_leftOperand.value : old};
+                    Worry b{m_rightOperand.isConst ? m_rightOperand.value : old};
 
                     switch(m_operator) {
                         case '+':
@@ -105,8 +80,8 @@ namespace day11 {
 
         class Monke {
             private:
-                deque<int> m_items{};
-                int m_testDivisor{0};
+                deque<Worry> m_items{};
+                Worry m_testDivisor{0};
                 int m_throwToIfTrue{0};
                 int m_throwToIfFalse{0};
                 Operation m_inspection{"3", "3", '+'};
@@ -114,9 +89,6 @@ namespace day11 {
 
             public:
                 Monke(vector<string> lines) {
-
-                    //assert(lines.size() == 6);
-
                     string _s{""};
                     char _c{'\0'};
 
@@ -159,13 +131,21 @@ namespace day11 {
                     return m_items.size() > 0;
                 }
 
-                Throw throwNextItem() {
+                Throw throwNextItem(Worry relief, Worry anxieTea) {
                     ++m_nInspections;
 
-                    int item{m_items.front()};
+                    Worry item{m_items.front()};
                     m_items.pop_front(); // Not a fan of pops that don't return a value..
 
-                    int increasedWorry{m_inspection.apply(item) / 3};
+                    Worry increasedWorry{m_inspection.apply(item)};
+
+                    // Had typed "> 0" here out of habit, cost me about 2 hours.. :shrug:
+                    if(relief > 1) {
+                        increasedWorry /= relief;
+                    } else {
+                        increasedWorry %= anxieTea;
+                    }
+
                     if(increasedWorry % m_testDivisor) {
                         return Throw{m_throwToIfFalse, increasedWorry};
                     } else {
@@ -173,12 +153,16 @@ namespace day11 {
                     }
                 }
 
-                void catchItem(int item) {
+                void catchItem(Worry item) {
                     m_items.push_back(item);
                 }
 
                 int getMonkeBeesKnees() {
                     return m_nInspections;
+                }
+
+                int getDivisor() {
+                    return m_testDivisor;
                 }
 
                 void print() {
@@ -198,6 +182,43 @@ namespace day11 {
                     std::cout << "ook!\n\n";
                 }
         };
+
+        long runMonkesFor(vector<Monke> monkes, int n, int relief) {
+            Worry anxieTea{1};
+
+            for(Monke m : monkes) {
+                anxieTea *= m.getDivisor();
+            }
+
+            for(int r = 0; r < n; ++r) {
+                for(Monke& m : monkes) {
+                    while(m.haz()) {
+                        Throw t{m.throwNextItem(relief, anxieTea)};
+                        monkes[t.recipient].catchItem(t.item);
+                    }
+                }
+
+                /*
+                Fer de debugging
+                if(relief == 1 && (r == 0 || r == 19 || (r + 1) % 1000 == 0)) {
+                    std::cout << "==== After round " << (r+1) << " ====\n";
+                    for(Monke m : monkes) {
+                        std::cout << m.getMonkeBeesKnees() << '\n';
+                        m.print();
+                    }
+                    std::cout << '\n';
+                }
+                */
+            }
+
+            vector<long> throws{};
+            for(Monke m : monkes) {
+                throws.push_back(m.getMonkeBeesKnees());
+            }
+            std::sort(throws.begin(), throws.end(), std::greater{});
+
+            return throws[0] * throws[1];
+        }
     }
 
     DayResults run(string filename) {
@@ -217,27 +238,13 @@ namespace day11 {
             monkeLines = {};
         }
 
-        for(int r = 0; r < 20; ++r){
-            for(Monke& m : monkes) {
-                while(m.haz()) {
-                    Throw t{m.throwNextItem()};
-                    monkes[t.recipient].catchItem(t.item);
-                }
-            }
-        }
+        long part1{runMonkesFor(monkes, 20, 3)};
 
-        for(Monke m : monkes) {
-            m.print();
-        }
-
-        vector<int> throws{};
-        for(Monke m : monkes) {
-            throws.push_back(m.getMonkeBeesKnees());
-        }
-        std::sort(throws.begin(), throws.end(), std::greater{});
+        long part2{runMonkesFor(monkes, 10000, 1)};
 
         return DayResults{
-            std::to_string(throws[0] * throws[1])
+            "After the 20 rounds, two busiest munkes had " + std::to_string(part1),
+            "After the 10000 rounds, two busiest munkes had " + std::to_string(part2)
         };
     }
 }
