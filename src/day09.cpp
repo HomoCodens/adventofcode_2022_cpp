@@ -5,45 +5,12 @@
 
 #include "./days.hpp"
 #include "./util.hpp"
+#include "./vector2d.hpp"
 
 namespace day9 {
     using std::string;
 
     namespace {
-        struct Vector2D {
-            int x{0};
-            int y{0};
-        };
-
-        struct PointHasher {
-            size_t operator()(const Vector2D& x) const {
-                auto hasher = std::hash<int>{};
-
-                auto h1 = hasher(x.x);
-                auto h2 = hasher(x.y);
-
-                if(h1 != h2) {
-                    return h1 ^ h2;
-                }
-                return h1;
-            }
-        };
-
-        bool operator==(const Vector2D& a, const Vector2D& b) {
-            return a.x == b.x && a.y == b.y;
-        }
-
-        Vector2D operator+(const Vector2D& a, const Vector2D& b) {
-            return Vector2D{a.x + b.x, a.y + b.y};
-        }
-
-        Vector2D operator-(const Vector2D& a, const Vector2D& b) {
-            return Vector2D{a.x - b.x, a.y - b.y};
-        }
-
-        Vector2D operator*(const int& magnitude, const Vector2D& v) {
-            return Vector2D{magnitude*v.x, magnitude*v.y};
-        }
 
         // Boi, really leaning into custom types today
         struct Move {
