@@ -22,12 +22,13 @@ int main() {
         day9::run,
         day10::run,
         day11::run,
-        day12::run
+        day12::run,
+        day13::run
     };
 
     TimeUnit totalTime{0};
 
-    for(int i = 11; i < 12; i++) {
+    for(int i = 12; i < 13; i++) {
         int day{i+1};
 
         std::string dayStr{std::to_string(day)};
