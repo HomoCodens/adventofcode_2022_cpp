@@ -23,12 +23,13 @@ int main() {
         day10::run,
         day11::run,
         day12::run,
-        day13::run
+        day13::run,
+        day14::run
     };
 
     TimeUnit totalTime{0};
 
-    for(int i = 12; i < 13; i++) {
+    for(int i = 0; i < 14; i++) {
         int day{i+1};
 
         std::string dayStr{std::to_string(day)};
@@ -39,7 +40,7 @@ int main() {
         // TODO: _really_ should add a check if file exists...
         std::string path = "./input/day" + dayStr + "/input.txt";
 
-        DayWithTime dt = runAndTime(day, allTheDays[i], path, 1);
+        DayWithTime dt = runAndTime(day, allTheDays[i], path, 100);
         std::cout << dt;
 
         totalTime += dt.t;
