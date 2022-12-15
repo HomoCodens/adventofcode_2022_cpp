@@ -90,7 +90,7 @@ namespace day13 {
                 bool lessThan(PacketThing* other) {
                     if(other->getType() == "Integer") {
                         PacketInteger* o{dynamic_cast<PacketInteger*>(other)};
-                        std::cout << "Comparing " << *this << " to " << *o << '\n';
+                        // std::cout << "Comparing " << *this << " to " << *o << '\n';
                         if(m_items.size() == 0) {
                             return true;
                         } else {
@@ -101,7 +101,7 @@ namespace day13 {
                     } else {
                         PacketList* o{dynamic_cast<PacketList*>(other)};
 
-                        std::cout << "Comparing " << *this << " to " << *o << '\n';
+                        // std::cout << "Comparing " << *this << " to " << *o << '\n';
 
                         if(m_items.size() == 0 && o->m_items.size() == 0) {
                             return false;
@@ -199,8 +199,8 @@ namespace day13 {
 
                 bool isLess{p1.lessThan(&p2)};
 
-                std::cout << p1 << "\nvs\n" << p2 << '\n';
-                std::cout << isLess << "\n\n";
+                // std::cout << p1 << "\nvs\n" << p2 << '\n';
+                // std::cout << isLess << "\n\n";
 
                 if(isLess) {
                     part1 += grp;
