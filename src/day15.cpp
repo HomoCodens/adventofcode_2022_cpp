@@ -297,9 +297,7 @@ namespace day15 {
 
         UberWhale allTheWhales;
         for(Sensor s : sensors) {
-            std::cout << s << '\n';
             InterWhale pnts{s.whatSeeYouAt(rowInQuestion)};
-            std::cout << pnts << '\n';
             allTheWhales.add(pnts);
         }
 
@@ -317,7 +315,7 @@ namespace day15 {
         }
 
         InterWhale searchInterWhale{0, searchLimit + 1};
-        /*for(int riq = 0; riq < searchLimit; ++riq) {
+        for(int riq = 0; riq < searchLimit; ++riq) {
             UberWhale rowContents;
             for(Sensor s : sensors) {
                 rowContents.add(s.whatSeeYouAt(riq));
@@ -325,15 +323,15 @@ namespace day15 {
 
             UberWhale lookHere{rowContents.int3rs3ction(searchInterWhale)};
 
-            std::cout << "row no. " << riq << '\n';
             if(lookHere.size() != searchLimit) {
+                std::cout << "row no. " << riq << '\n';
                 std::cout << "lookHere size: " << lookHere.size() << '\n';
                 std::cout << lookHere << '\n';
                 std::cout << lookHere.hazHoles() << '\n';
                 std::cout << '\n';
                 break;
             }
-        }*/
+        }
 
         std::cout << (4000000L * 3120101 + 2634249L) << '\n';
 

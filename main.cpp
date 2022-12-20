@@ -25,13 +25,18 @@ int main() {
         day12::run,
         day13::run,
         day14::run,
-        day15::run
+        day15::run,
+        day16::run
     };
 
     TimeUnit totalTime{0};
 
-    for(int i = 14; i < 15; i++) {
+    for(int i = 15; i < 16; i++) {
         int day{i+1};
+        if(i >= allTheDays.size()) {
+            std::cout << "Ya dumdum, " << day << " does not even exist yet...";
+            continue;
+        }
 
         std::string dayStr{std::to_string(day)};
         if(day < 10) {
