@@ -111,31 +111,42 @@ namespace day16 {
                     return m_distances[std::min(from, to)][std::max(from, to)];
                 }
 
-                int recur(string at, vector<string> queue, vector<string> path, int remainingTime, int runningTotal) {
+                int recur(int currentPlayer,
+                            int nPlayers,
+                            vector<string> ats,
+                            vector<string> queue,
+                            vector<int> remainingTime,
+                            int runningTotal) {
                     if(queue.size() == 0) {
-                        std::cout << "When going ";
-                        for(string p : path) {
-                            std::cout << p << ", ";
-                        }
                         std::cout << "\nThe total be " << runningTotal << "\n\n";
                         return runningTotal;
                     }
                     
                     int best{runningTotal};
+                    vector<int> nrt{remainingTime};
+                    vector<string> nats{ats};
+
                     for(string next : queue) {
+                        int distToNext{getDistance(ats[currentPlayer], next)};
+
                         // We still have time to get there and open the valve
-                        if(getDistance(at, next) < remainingTime) {
-                            vector<string> np{path};
-                            np.push_back(next);
+                        if(distToNext < remainingTime[currentPlayer]) {
+                            // There has to be a petter way (meow?)
 
                             vector<string> nq{queue};
                             nq.erase(std::remove(nq.begin(), nq.end(), next), nq.end());
 
-                            int timeRemainingWhenValveOpen{remainingTime - getDistance(at, next) - 1};
-                            int candidate{recur(next,
+                            int timeRemainingWhenValveOpen{remainingTime[currentPlayer] - distToNext - 1};
+
+                            nrt[currentPlayer] = timeRemainingWhenValveOpen;
+                            
+                            nats[currentPlayer] = next;
+
+                            int candidate{recur((currentPlayer + 1) % nPlayers,
+                                                nPlayers,
+                                                nats,
                                                 nq,
-                                                np,
-                                                timeRemainingWhenValveOpen,
+                                                nrt,
                                                 runningTotal + m_map[next].getFlowRate()*timeRemainingWhenValveOpen)};
                             if(best < candidate) {
                                 best = candidate;
@@ -156,9 +167,31 @@ namespace day16 {
                             interestingNodes.push_back(i.second.getId());
                         }
                     }
-                    vector<string> howDoIInitializeVectorsInFunctionCallsAgain;
-                    howDoIInitializeVectorsInFunctionCallsAgain.push_back("AA");
-                    return recur("AA", interestingNodes, howDoIInitializeVectorsInFunctionCallsAgain, 30, 0);
+
+                    vector<string> startPos;
+                    startPos.push_back("AA");
+
+                    vector<int> timeBudgets;
+                    timeBudgets.push_back(30);
+                    return recur(0, 1, startPos, interestingNodes, timeBudgets, 0);
+                }
+
+                int maximTwice() {
+                    vector<string> interestingNodes;
+                    for(auto i : m_map) {
+                        if(i.second.getFlowRate() > 0) {
+                            interestingNodes.push_back(i.second.getId());
+                        }
+                    }
+
+                    vector<string> startPos;
+                    startPos.push_back("AA");
+                    startPos.push_back("AA");
+
+                    vector<int> timeBudgets;
+                    timeBudgets.push_back(26);
+                    timeBudgets.push_back(26);
+                    return recur(0, 2, startPos, interestingNodes, timeBudgets, 0);
                 }
 
         };
@@ -177,12 +210,15 @@ namespace day16 {
                 a.insert_or_assign(n.getId(), n);
             }
         }
-        
+
         TheGame tg{a};
         int part1{tg.maximIce()};
-
+        std::cout << "part 1 done...\n";
+        int part2{0};
+        part2 = tg.maximTwice();
         return DayResults{
-            std::to_string(part1)
+            std::to_string(part1),
+            std::to_string(part2)
         };
     }
 }
