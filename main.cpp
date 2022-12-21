@@ -26,12 +26,13 @@ int main() {
         day13::run,
         day14::run,
         day15::run,
-        day16::run
+        day16::run,
+        day17::run
     };
 
     TimeUnit totalTime{0};
 
-    for(int i = 15; i < 16; i++) {
+    for(int i = 16; i < 17; i++) {
         int day{i+1};
         if(i >= allTheDays.size()) {
             std::cout << "Ya dumdum, " << day << " does not even exist yet...";
