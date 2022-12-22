@@ -1,7 +1,10 @@
+#include <cmath>
 #include <fstream>
 #include <iostream>
+#include <unordered_map>
 #include <unordered_set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "./days.hpp"
@@ -10,6 +13,7 @@
 
 namespace day17 {
     using std::string;
+    using std::unordered_map;
     using std::unordered_set;
     using std::vector;
 
@@ -51,6 +55,10 @@ namespace day17 {
 
                     return out;
                 }
+
+                int getPosition() {
+                    return m_pos;
+                }
         };
 
         using PointMap = unordered_set<Vector2D, PointHasher>;
@@ -62,6 +70,9 @@ namespace day17 {
                 vector<Peece> m_pieces;
                 int m_currentPiece{0};
                 Vector2D m_currentPiecePos;
+                int m_yMax{0};
+                Vector2D down{Vector2D(0, -1)}; // aka 'The Enemy Gate'
+                int m_nPieces{0};
 
                 /*Peece nextPiece() {
                     Peece out{m_pieces[m_currentPiece]};
@@ -103,7 +114,7 @@ namespace day17 {
                     m_currentPiecePos = m_currentPiecePos + v;
                     vector<Vector2D> points{m_pieces[m_currentPiece].getPositions(m_currentPiecePos)};
 
-                    for(Vector2D x : points) {
+                    /*for(Vector2D x : points) {
                         std::cout << x << ' ';
                     }
                     std::cout << "\nAfter movin " << v << '\n';
@@ -116,7 +127,7 @@ namespace day17 {
                         std::cout << "Crashed into another...\n";
                     } else {
                         std::cout << "All good here.\n";
-                    }
+                    }*/
 
                     if(pieceInFloor(points) || pieceInWall(points) || pieceCollides(points)) {
                         m_currentPiecePos = m_currentPiecePos - v;
@@ -124,6 +135,30 @@ namespace day17 {
                     }
 
                     return true;
+                }
+
+                void dropPiece() {
+                    m_currentPiecePos = Vector2D(2, m_yMax + 3);
+
+                    while(true) {
+                        Vector2D gush{m_wind.next()};
+
+                        attemptMove(gush);
+
+                        if(!attemptMove(down)) {
+                            break;
+                        }
+                    }
+
+                    for(Vector2D x : m_pieces[m_currentPiece].getPositions(m_currentPiecePos)) {
+                        m_map.insert(x);
+                        if(x.y >= m_yMax) {
+                            m_yMax = x.y + 1;
+                        }
+                    }
+
+                    ++m_nPieces;
+                    m_currentPiece = (m_currentPiece + 1) % m_pieces.size();
                 }
 
             public:
@@ -159,53 +194,69 @@ namespace day17 {
                                 Peece{squarePieces}};
                 }
 
-                void showsualize(int yMax) {
-                    for(int y = yMax; y >= 0; --y) {
-                        std::cout << '|';
+                void showsualize(int m_yMax, std::ostream& os) {
+                    for(int y = m_yMax; y >= 0; --y) {
+                        os << '|';
                         for(int x = 0; x < 7; ++x) {
                             if(m_map.find(Vector2D(x, y)) != m_map.end()) {
-                                std::cout << '#';
+                                os << '#';
                             } else {
-                                std::cout << '.';
+                                os << '.';
                             }
                         }
-                        std::cout << "|\n";
+                        os << "|\n";
                     }
-                    std::cout << "+-------+\n";
+                    os << "+-------+\n";
                 }
 
-                int play() {
-                    Vector2D down{Vector2D(0, -1)};
-                    int yMax{0};
-
+                int playPart1() {
                     for(int i = 0; i < 2022; ++i) {
-                        m_currentPiecePos = Vector2D(2, yMax + 3);
+                        dropPiece();
 
                         if(i <= 10) {
-                            showsualize(yMax + 3);
+                            showsualize(m_yMax + 3, std::cout);
                         }
-
-                        while(true) {
-                            Vector2D gush{m_wind.next()};
-
-                            attemptMove(gush);
-
-                            if(!attemptMove(down)) {
-                                break;
-                            }
-                        }
-
-                        for(Vector2D x : m_pieces[m_currentPiece].getPositions(m_currentPiecePos)) {
-                            m_map.insert(x);
-                            if(x.y >= yMax) {
-                                yMax = x.y + 1;
-                            }
-                        }
-
-                        m_currentPiece = (m_currentPiece + 1) % m_pieces.size();
                     }
 
-                    return yMax;
+                    //std::ofstream f{"./piledump.txt"};
+                    //showsualize(m_yMax, f);
+
+                    return m_yMax;
+                }
+
+                uint64_t playPart2() {
+                    std::cout << "Detecting cycle...\n";
+                    unordered_map<ulong, std::pair<int, int>> horizonticalBarWinds;
+                    ulong horizonticalHash{0}; // "hash"
+                    while(m_currentPiece > 0 || horizonticalBarWinds.find(horizonticalHash) == horizonticalBarWinds.end()) {
+                        if(m_currentPiece == 0) {
+                            horizonticalBarWinds[horizonticalHash] = std::make_pair(m_yMax, m_nPieces);
+                            horizonticalHash = m_wind.getPosition();
+                        } else {
+                            horizonticalHash += m_wind.getPosition()*std::pow(10, m_currentPiece);
+                        }
+
+                        dropPiece();
+                    }
+                    std::cout << "Cycle find!\n";
+                    int cyclePeriod{(m_nPieces - horizonticalBarWinds[horizonticalHash].second)};
+                    int firstCycle{horizonticalBarWinds[horizonticalHash].first};
+                    int superMegaGigaChadPieceHeight{(m_yMax - horizonticalBarWinds[horizonticalHash].first)};
+                    std::cout << "Period: " << cyclePeriod << '\n';
+                    std::cout << "Begin: " << firstCycle << '\n';
+                    std::cout << "deltaHeight: " << superMegaGigaChadPieceHeight << '\n';
+
+                    uint64_t targetNMoves{1000000000000L};
+                    uint64_t movesToGo{targetNMoves - m_nPieces};
+                    uint64_t cyclesToDo{movesToGo / cyclePeriod};
+                    uint64_t movesToDo{movesToGo % cyclePeriod};
+
+                    std::cout << "Advancing another " << movesToDo << " pieces...\n";
+                    for(int i = 0; i < movesToDo; ++i) {
+                        dropPiece();
+                    }
+
+                    return cyclesToDo*superMegaGigaChadPieceHeight + m_yMax;
                 }
         };
     }
@@ -215,11 +266,24 @@ namespace day17 {
         string gushes;
         std::getline(f, gushes);
 
+        // TODO: Make Verld reusable :shrug:
         Verld world{gushes};
-        int part1{world.play()};
+        int part1{world.playPart1()};
+
+        Verld alternateWorld{gushes};
+        auto part2{alternateWorld.playPart2()};
 
         return DayResults{
-            "After 2022 pieces, the tower be " + std::to_string(part1) + " tall."
+            "After 2022 pieces, the tower be " + std::to_string(part1) + " tall.",
+            "After 1000000000000 pieces (and some trickery), " + std::to_string(part2)
         };
     }
 }
+
+/*
+Part 2 ideas:
+    1) track only floor level
+    2) find periodicity
+        2.a) after 5*wind.size()?
+    3) reduce windshweeps for pieces
+*/
