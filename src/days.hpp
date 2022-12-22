@@ -23,5 +23,6 @@ DAY(14)
 DAY(15)
 DAY(16)
 DAY(17)
+DAY(18)
 
 #undef DAY
