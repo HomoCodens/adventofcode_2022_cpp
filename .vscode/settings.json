@@ -70,6 +70,7 @@
         "variant": "cpp",
         "bitset": "cpp",
         "complex": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "queue": "cpp"
     }
 }
